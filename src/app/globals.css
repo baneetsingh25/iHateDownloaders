@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --foreground: #FDFBF7;
+  --border: #1F1F1F;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #000000;
+  color: #FDFBF7;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom minimal dark scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+/* Selection */
+::selection {
+  background: #FDFBF7;
+  color: #000000;
+}
+
+/* Obsidian Glass & Surface Classes */
+.obsidian-card {
+  background: #0A0A0A;
+  border: 1px solid #1F1F1F;
+  border-radius: 8px;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.obsidian-card:hover {
+  border-color: #2E2E2E;
+}
+
+.obsidian-input {
+  background: #080808;
+  border: 1px solid #222222;
+  color: #FDFBF7;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.obsidian-input:focus {
+  border-color: #555555;
+  box-shadow: 0 0 0 1px #555555;
+}
+
+/* Monospace metrics font styling */
+.font-mono-numbers {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-variant-numeric: tabular-nums;
+}
