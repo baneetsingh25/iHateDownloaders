@@ -2,6 +2,9 @@ import { PlatformType, MediaMetadata, VideoFormat, AudioFormat, PlaylistItem } f
 
 export function detectPlatform(url: string): PlatformType {
   const clean = url.trim().toLowerCase();
+  if (clean.includes('instagram.com') || clean.includes('instagr.am')) {
+    return 'instagram';
+  }
   if (clean.includes('youtube.com/shorts') || (clean.includes('youtu.be') && clean.includes('shorts'))) {
     return 'shorts';
   }
@@ -9,6 +12,24 @@ export function detectPlatform(url: string): PlatformType {
     return 'youtube';
   }
   return 'unknown';
+}
+
+export function extractInstagramShortcode(url: string): { type: 'reel' | 'post' | 'story' | 'unknown'; code: string | null } {
+  if (!url) return { type: 'unknown', code: null };
+  const str = url.trim();
+  const reelMatch = str.match(/instagram\.com\/(?:reels?)\/([a-zA-Z0-9_-]+)/i);
+  if (reelMatch) return { type: 'reel', code: reelMatch[1] };
+
+  const postMatch = str.match(/instagram\.com\/(?:p)\/([a-zA-Z0-9_-]+)/i);
+  if (postMatch) return { type: 'post', code: postMatch[1] };
+
+  const storyMatch = str.match(/instagram\.com\/stories\/([a-zA-Z0-9_.-]+)(?:\/([0-9]+))?/i);
+  if (storyMatch) return { type: 'story', code: storyMatch[2] || storyMatch[1] };
+
+  const genericMatch = str.match(/instagram\.com\/[a-zA-Z0-9_.-]+\/(?:reel|p)\/([a-zA-Z0-9_-]+)/i);
+  if (genericMatch) return { type: 'reel', code: genericMatch[1] };
+
+  return { type: 'unknown', code: null };
 }
 
 export function extractYouTubeId(urlOrId: string): string | null {
@@ -151,5 +172,92 @@ export const DEMO_STREAMS: Record<string, MediaMetadata> = {
       { id: 'track-6', title: '06. Midnight Filter Sweep (Oberheim Matrix-12)', duration: 265, durationFormatted: '04:25', thumbnailUrl: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=400&q=80', author: 'Modular Waves', url: 'https://www.youtube.com/watch?v=track6', selected: true, estSizeMB: 80.3 },
       { id: 'track-7', title: '07. Ambient Resonance & Convolution Reverb Outro', duration: 530, durationFormatted: '08:50', thumbnailUrl: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=400&q=80', author: 'Modular Waves', url: 'https://www.youtube.com/watch?v=track7', selected: true, estSizeMB: 160.7 },
     ],
+  },
+  instagram_reel: {
+    id: 'demo-ig-reel-1',
+    url: 'https://www.instagram.com/reel/C8qL8G2O3Yd/',
+    platform: 'instagram',
+    instagramType: 'reel',
+    shortcode: 'C8qL8G2O3Yd',
+    title: 'Neon Tokyo Odyssey: Rain-slicked Shibuya Reflections in 4K',
+    caption: 'Tokyo midnight aesthetic through 35mm anamorphic glass. Shot on location in Shibuya and Shinjuku. #cinematic #tokyo #neon #reels',
+    author: 'tokyo.nocturne',
+    authorUrl: 'https://instagram.com/tokyo.nocturne',
+    duration: 38,
+    durationFormatted: '00:38',
+    viewCount: 489000,
+    likeCount: 68400,
+    uploadDate: '2024-06-25',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1080&q=80',
+    dynamicRange: 'SDR',
+    directDownloadUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoFormats: [
+      { formatId: 'ig-1080p-fhd', quality: '1080x1920 FHD (60fps Vertical)', resolution: '1080x1920', fps: 60, container: 'mp4', vcodec: 'avc1.64002a', hasAudio: true, filesizeApproxMB: 18.6, bitrateKbps: 3800, isDirectDownload: true },
+      { formatId: 'ig-720p-hd', quality: '720x1280 HD (Vertical Stream)', resolution: '720x1280', fps: 30, container: 'mp4', vcodec: 'avc1.4d401f', hasAudio: true, filesizeApproxMB: 10.4, bitrateKbps: 2200, isDirectDownload: true },
+    ],
+    audioFormats: [
+      { formatId: 'ig-mp3-320', label: 'MP3 320 kbps (Reel Audio CBR Master)', codec: 'mp3', bitrateKbps: 320, sampleRate: 48000, channels: 2, filesizeApproxMB: 1.5 },
+      { formatId: 'ig-m4a-aac', label: 'M4A / AAC 256 kbps (Native Audio Stream)', codec: 'm4a', bitrateKbps: 256, sampleRate: 48000, channels: 2, filesizeApproxMB: 1.2 },
+    ],
+    audioUrl: 'https://cdn.freesound.org/previews/518/518305_5674468-lq.mp3',
+    audioTitle: 'Original Audio - tokyo.nocturne • Midnight Synthwave',
+  },
+  instagram_carousel: {
+    id: 'demo-ig-carousel-1',
+    url: 'https://www.instagram.com/p/C9wK8M1P4zQ/',
+    platform: 'instagram',
+    instagramType: 'carousel',
+    shortcode: 'C9wK8M1P4zQ',
+    title: 'Minimalist Architecture & Brutalist Monoliths of Kyoto & Osaka',
+    caption: 'Curated architectural photo series documenting raw concrete and natural cedar geometries in Kansai. Swipe through for all 4 gallery captures. #minimalism #architecture #japan #design',
+    author: 'arch.zenith',
+    authorUrl: 'https://instagram.com/arch.zenith',
+    duration: 0,
+    durationFormatted: '00:00',
+    viewCount: 142000,
+    likeCount: 21300,
+    uploadDate: '2024-07-14',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+    dynamicRange: 'SDR',
+    carouselItems: [
+      {
+        id: 'slide-1',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=90',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
+        width: 1920,
+        height: 1280,
+        filesizeApproxMB: 2.8,
+      },
+      {
+        id: 'slide-2',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1920&q=90',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=80',
+        width: 1920,
+        height: 1280,
+        filesizeApproxMB: 3.1,
+      },
+      {
+        id: 'slide-3',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=90',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80',
+        width: 1920,
+        height: 1280,
+        filesizeApproxMB: 2.4,
+      },
+      {
+        id: 'slide-4',
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1920&q=90',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=80',
+        width: 1920,
+        height: 1280,
+        filesizeApproxMB: 2.6,
+      },
+    ],
+    videoFormats: [],
+    audioFormats: [],
   },
 };

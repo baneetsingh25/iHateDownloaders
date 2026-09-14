@@ -1,4 +1,14 @@
-export type PlatformType = 'youtube' | 'shorts' | 'unknown';
+export type PlatformType = 'youtube' | 'shorts' | 'instagram' | 'unknown';
+
+export interface InstagramMediaItem {
+  id: string;
+  type: 'video' | 'image';
+  url: string;
+  thumbnailUrl: string;
+  width?: number;
+  height?: number;
+  filesizeApproxMB?: number;
+}
 
 export interface VideoFormat {
   formatId: string;
@@ -57,6 +67,14 @@ export interface MediaMetadata {
   isPlaylist?: boolean;
   playlistItems?: PlaylistItem[];
   isolatedAudioUrl?: string;
+  // Instagram specific:
+  instagramType?: 'reel' | 'post' | 'carousel' | 'story';
+  carouselItems?: InstagramMediaItem[];
+  shortcode?: string;
+  caption?: string;
+  directDownloadUrl?: string;
+  audioUrl?: string;
+  audioTitle?: string;
 }
 
 export interface AudioStudioOptions {

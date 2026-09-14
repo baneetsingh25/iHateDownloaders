@@ -3,12 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck, Zap, Youtube } from 'lucide-react';
+import { ShieldCheck, Zap, Youtube, Instagram } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
 
   const isYouTubeActive = pathname === '/youtube' || pathname === '/';
+  const isInstagramActive = pathname === '/instagram';
 
   return (
     <header className="w-full border-b border-obsidian-700/80 bg-black/95 backdrop-blur-md sticky top-0 z-40">
@@ -23,8 +24,8 @@ export const Header: React.FC = () => {
               <span className="font-bold tracking-tight text-pearl-100 text-base sm:text-lg font-sans">
                 iHate<span className="text-pearl-500 font-light">Downloaders</span>
               </span>
-              <span className="hidden sm:inline-block text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-obsidian-800 border border-obsidian-600 text-pearl-400">
-                v1.0
+              <span className="hidden sm:inline-block text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-obsidian-800 border border-obsidian-600 text-emerald-400 font-semibold">
+                v2.0
               </span>
             </div>
           </Link>
@@ -33,10 +34,26 @@ export const Header: React.FC = () => {
           <nav className="flex items-center space-x-1 p-1 rounded-lg bg-obsidian-950 border border-obsidian-800">
             <Link
               href="/youtube"
-              className="flex items-center space-x-2 px-3.5 py-1.5 rounded-md text-xs font-mono transition-all bg-pearl-100 text-black font-semibold shadow-sm"
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all ${
+                isYouTubeActive
+                  ? 'bg-pearl-100 text-black font-semibold shadow-sm'
+                  : 'text-pearl-400 hover:text-pearl-100 hover:bg-obsidian-900'
+              }`}
             >
-              <Youtube className="w-3.5 h-3.5 text-rose-500" />
+              <Youtube className={`w-3.5 h-3.5 ${isYouTubeActive ? 'text-rose-600' : 'text-rose-500'}`} />
               <span>YouTube</span>
+            </Link>
+
+            <Link
+              href="/instagram"
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-mono transition-all ${
+                isInstagramActive
+                  ? 'bg-pearl-100 text-black font-semibold shadow-sm'
+                  : 'text-pearl-400 hover:text-pearl-100 hover:bg-obsidian-900'
+              }`}
+            >
+              <Instagram className={`w-3.5 h-3.5 ${isInstagramActive ? 'text-pink-600' : 'text-pink-400'}`} />
+              <span>Instagram</span>
             </Link>
           </nav>
 
