@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-const siteUrl = 'https://ihatedownloaders.com';
+const siteUrl = 'https://i-hate-downloaders.vercel.app';
 
 export const viewport: Viewport = {
   themeColor: '#000000',
