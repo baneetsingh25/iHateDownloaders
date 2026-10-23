@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { detectPlatform, formatDuration, extractYouTubeId } from '@/lib/engine';
+import { getClientIp, checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { MediaMetadata, VideoFormat, AudioFormat, PlaylistItem } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,28 @@ const execAsync = promisify(exec);
 
 export async function POST(req: NextRequest) {
   try {
+    // Defense-in-depth rate limiting
+    const ip = getClientIp(req);
+    const limitCheck = checkRateLimit(`${ip}:inspect`, RATE_LIMITS.inspect.max, RATE_LIMITS.inspect.windowMs);
+    if (!limitCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Rate limit reached. Please wait ${limitCheck.retryAfterSeconds} seconds before inspecting again.`,
+          retryAfter: limitCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(limitCheck.retryAfterSeconds),
+            'X-RateLimit-Limit': String(limitCheck.limit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(limitCheck.resetTimeMs),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     const { url } = body;
 

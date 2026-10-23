@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractInstagramShortcode } from '@/lib/engine';
+import { getClientIp, checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { spawn } from 'child_process';
 import { Readable } from 'stream';
 import fs from 'fs';
@@ -12,6 +13,27 @@ export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   try {
+    // Defense-in-depth rate limiting
+    const ip = getClientIp(req);
+    const limitCheck = checkRateLimit(`${ip}:instagram-download`, RATE_LIMITS.instagramDownload.max, RATE_LIMITS.instagramDownload.windowMs);
+    if (!limitCheck.success) {
+      return NextResponse.json(
+        {
+          error: `Rate limit reached. Please wait ${limitCheck.retryAfterSeconds} seconds before downloading again.`,
+          retryAfter: limitCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(limitCheck.retryAfterSeconds),
+            'X-RateLimit-Limit': String(limitCheck.limit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(limitCheck.resetTimeMs),
+          },
+        }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const mediaUrl = searchParams.get('url');
     const postUrl = searchParams.get('postUrl');

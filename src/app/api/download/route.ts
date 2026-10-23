@@ -5,11 +5,33 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
+import { getClientIp, checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
+  // Defense-in-depth rate limiting
+  const ip = getClientIp(req);
+  const limitCheck = checkRateLimit(`${ip}:download`, RATE_LIMITS.download.max, RATE_LIMITS.download.windowMs);
+  if (!limitCheck.success) {
+    return NextResponse.json(
+      {
+        error: `Download rate limit reached. Please wait ${limitCheck.retryAfterSeconds} seconds before downloading again.`,
+        retryAfter: limitCheck.retryAfterSeconds,
+      },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(limitCheck.retryAfterSeconds),
+          'X-RateLimit-Limit': String(limitCheck.limit),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': String(limitCheck.resetTimeMs),
+        },
+      }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const url = searchParams.get('url') || '';
   const formatId = searchParams.get('formatId') || 'best';

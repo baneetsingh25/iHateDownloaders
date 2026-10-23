@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getClientIp, checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { spawn } from 'child_process';
 
 export async function POST(req: NextRequest) {
   try {
+    // Defense-in-depth rate limiting
+    const ip = getClientIp(req);
+    const limitCheck = checkRateLimit(`${ip}:audio-transcode`, RATE_LIMITS.audioTranscode.max, RATE_LIMITS.audioTranscode.windowMs);
+    if (!limitCheck.success) {
+      return NextResponse.json(
+        {
+          error: `Rate limit reached. Please wait ${limitCheck.retryAfterSeconds} seconds before transcoding again.`,
+          retryAfter: limitCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(limitCheck.retryAfterSeconds),
+            'X-RateLimit-Limit': String(limitCheck.limit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(limitCheck.resetTimeMs),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     const {
       format = 'mp3-320',

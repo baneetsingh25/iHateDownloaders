@@ -1,11 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractYouTubeId } from '@/lib/engine';
+import { getClientIp, checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   try {
+    // Defense-in-depth rate limiting
+    const ip = getClientIp(req);
+    const limitCheck = checkRateLimit(`${ip}:thumbnail`, RATE_LIMITS.thumbnail.max, RATE_LIMITS.thumbnail.windowMs);
+    if (!limitCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Thumbnail rate limit reached. Please wait ${limitCheck.retryAfterSeconds} seconds.`,
+          retryAfter: limitCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(limitCheck.retryAfterSeconds),
+            'X-RateLimit-Limit': String(limitCheck.limit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(limitCheck.resetTimeMs),
+          },
+        }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const url = searchParams.get('url') || '';
     const videoIdParam = searchParams.get('videoId') || '';

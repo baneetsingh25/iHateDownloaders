@@ -102,7 +102,7 @@ export const YouTubeView: React.FC<YouTubeViewProps> = ({ showToast }) => {
         setMetadata(null);
         const errText = json.error || 'Failed to inspect YouTube stream. Please ensure the video is public and active.';
         setErrorMessage(errText);
-        showToast('error', 'Inspection Error', errText);
+        showToast('error', res.status === 429 ? 'Rate Limit Reached' : 'Inspection Error', errText);
       }
     } catch (err: any) {
       setMetadata(null);
@@ -158,7 +158,13 @@ export const YouTubeView: React.FC<YouTubeViewProps> = ({ showToast }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, items }),
       });
-      if (!res.ok) throw new Error('ZIP bundling failed');
+      if (!res.ok) {
+        if (res.status === 429) {
+          const errJson = await res.json().catch(() => null);
+          throw new Error(errJson?.error || 'Rate limit reached for batch exports. Please wait a moment.');
+        }
+        throw new Error('ZIP bundling failed');
+      }
 
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -209,10 +215,6 @@ export const YouTubeView: React.FC<YouTubeViewProps> = ({ showToast }) => {
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-12">
       {/* Hero Header */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
-        <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full bg-obsidian-900 border border-obsidian-700 text-pearl-400 text-[11px] font-mono">
-          <Zap className="w-3 h-3 text-rose-500" />
-          <span>YOUTUBE DIRECT DE-MUXING ENGINE</span>
-        </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-pearl-100 font-sans flex items-center justify-center gap-3 flex-wrap">
           <Youtube className="w-10 h-10 sm:w-12 sm:h-12 text-rose-500 fill-rose-500/20 shrink-0 inline-block" />
           <span>

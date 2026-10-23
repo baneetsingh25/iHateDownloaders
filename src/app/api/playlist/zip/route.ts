@@ -1,12 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import archiver from 'archiver';
 import { PassThrough } from 'stream';
+import { getClientIp, checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
+    // Defense-in-depth rate limiting
+    const ip = getClientIp(req);
+    const limitCheck = checkRateLimit(`${ip}:zip`, RATE_LIMITS.zip.max, RATE_LIMITS.zip.windowMs);
+    if (!limitCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Batch export rate limit reached. Please wait ${limitCheck.retryAfterSeconds} seconds before exporting another ZIP.`,
+          retryAfter: limitCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(limitCheck.retryAfterSeconds),
+            'X-RateLimit-Limit': String(limitCheck.limit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(limitCheck.resetTimeMs),
+          },
+        }
+      );
+    }
+
     const body = await req.json();
     const { title, items } = body;
 

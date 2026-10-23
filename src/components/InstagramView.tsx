@@ -80,6 +80,15 @@ export const InstagramView: React.FC<InstagramViewProps> = ({ showToast }) => {
       });
 
       const json = await res.json();
+      if (res.status === 429) {
+        setMetadata(null);
+        const retryAfter = json.retryAfter || 5;
+        const msg = `Rate limit reached. Please wait ${retryAfter}s before inspecting again.`;
+        setErrorMessage(msg);
+        showToast('error', 'Rate Limit Reached', msg);
+        return;
+      }
+
       if (json.success && json.data) {
         setMetadata(json.data);
         setErrorMessage(null);
@@ -118,13 +127,11 @@ export const InstagramView: React.FC<InstagramViewProps> = ({ showToast }) => {
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
       {/* Hero Title & Value Proposition */}
       <section className="text-center space-y-4 max-w-3xl mx-auto">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-mono">
-          <Instagram className="w-3.5 h-3.5" />
-          <span>RAPIDAPI INTEGRATION • REELS, CAROUSELS & AUDIO</span>
-        </div>
-
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-pearl-100 font-sans">
-          Instagram <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-amber-300">Reels & Post</span> Studio
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-pearl-100 font-sans flex items-center justify-center gap-3 flex-wrap">
+          <Instagram className="w-10 h-10 sm:w-12 sm:h-12 text-pink-500 fill-pink-500/20 shrink-0 inline-block" />
+          <span>
+            Instagram <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-amber-300">Reels & Post</span> Studio
+          </span>
         </h1>
 
         <p className="text-pearl-500 text-sm sm:text-base font-sans leading-relaxed">

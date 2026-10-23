@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractInstagramShortcode } from '@/lib/engine';
+import { getClientIp, checkRateLimit, RATE_LIMITS } from '@/lib/rateLimit';
 import { MediaMetadata, InstagramMediaItem, VideoFormat, AudioFormat } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,28 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
+    // Defense-in-depth rate limiting
+    const ip = getClientIp(req);
+    const limitCheck = checkRateLimit(`${ip}:instagram-inspect`, RATE_LIMITS.instagramInspect.max, RATE_LIMITS.instagramInspect.windowMs);
+    if (!limitCheck.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Rate limit reached. Please wait ${limitCheck.retryAfterSeconds} seconds before inspecting again.`,
+          retryAfter: limitCheck.retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(limitCheck.retryAfterSeconds),
+            'X-RateLimit-Limit': String(limitCheck.limit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(limitCheck.resetTimeMs),
+          },
+        }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const { url } = body;
 
